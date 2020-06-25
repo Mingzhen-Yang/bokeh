@@ -11,7 +11,7 @@ export namespace CDSView {
   export type Props = Model.Props & {
     filters: p.Property<Filter[]>
     source: p.Property<ColumnarDataSource>
-    indices: p.Property<number[]>
+    indices: p.Property<Indices>
     indices_map: p.Property<{[key: string]: number}>
   }
 }
@@ -32,8 +32,8 @@ export class CDSView extends Model {
     })
 
     this.internal({
-      indices:     [ p.Array, [] ],
-      indices_map: [ p.Any,   {} ],
+      indices:     [ p.Any     ],
+      indices_map: [ p.Any, {} ],
     })
   }
 
@@ -91,21 +91,24 @@ export class CDSView extends Model {
       indices.intersect(filter.compute_indices(source))
     }
 
-    this.indices = [...indices]
+    this.indices = indices
+    this._indices = [...indices]
     this.indices_map_to_subset()
   }
 
+  private _indices: number[]
+
   indices_map_to_subset(): void {
     this.indices_map = {}
-    for (let i = 0; i < this.indices.length; i++){
-      this.indices_map[this.indices[i]] = i
+    for (let i = 0; i < this._indices.length; i++){
+      this.indices_map[this._indices[i]] = i
     }
   }
 
   convert_selection_from_subset(selection_subset: Selection): Selection {
     const selection_full = new Selection()
     selection_full.update_through_union(selection_subset)
-    const indices_1d = selection_subset.indices.map((i) => this.indices[i])
+    const indices_1d = selection_subset.indices.map((i) => this._indices[i])
     selection_full.indices = indices_1d
     selection_full.image_indices = selection_subset.image_indices
     return selection_full
@@ -121,6 +124,6 @@ export class CDSView extends Model {
   }
 
   convert_indices_from_subset(indices: number[]): number[] {
-    return indices.map((i) => this.indices[i])
+    return indices.map((i) => this._indices[i])
   }
 }
