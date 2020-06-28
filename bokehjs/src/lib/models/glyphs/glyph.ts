@@ -10,7 +10,7 @@ import {Model} from "../../model"
 import {Anchor} from "core/enums"
 import {logger} from "core/logging"
 import {Arrayable, Rect, NumberArray, Indices} from "core/types"
-import {map, subselect} from "core/util/arrayable"
+import {map} from "core/util/arrayable"
 import {extend} from "core/util/object"
 import {isArray, isTypedArray} from "core/util/types"
 import {SpatialIndex} from "core/util/spatial"
@@ -238,15 +238,15 @@ export abstract class GlyphView extends View {
     return new Selection({indices})
   }
 
-  set_data(source: ColumnarDataSource, indices: number[], indices_to_update: number[] | null): void {
+  set_data(source: ColumnarDataSource, indices: Indices, indices_to_update: number[] | null): void {
     let data = this.model.materialize_dataspecs(source)
 
-    if (indices && !(this instanceof LineView)) {
+    if (!(this instanceof LineView)) {
       const data_subset: {[key: string]: any} = {}
       for (const k in data) {
         const v = data[k]
         if (k.charAt(0) === '_')
-          data_subset[k] = subselect(v as Arrayable<unknown>, indices)
+          data_subset[k] = indices.select(v as Arrayable<unknown>)
         else
           data_subset[k] = v
       }
